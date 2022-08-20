@@ -1,0 +1,48 @@
+$theme-colors: (
+  "primary": #a188ea,
+  "secondary": gray,
+  "info": tomato,
+  "danger": red,
+  "success": #11101d,
+);
+
+body {
+  font-family: "Poppins" !important;
+}
+
+.w-85 {
+  width: 85% !important;
+}
+
+.page-link {
+  color: #11101d !important;
+}
+
+.page-link.active,
+.active > .page-link {
+  color: white !important;
+  background-color: #a188ea !important;
+  border-color: #a188ea !important;
+}
+
+a {
+  text-decoration: none !important;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+.upload-wrapper {
+  width: 96px;
+  height: 96px;
+  border: 1px solid #e1e1ed;
+  border-radius: 6px;
+}
+
+.upload-image {
+  object-fit: contain;
+}
+// Import Bootstrap and its default variables
+@import "~bootstrap/scss/bootstrap.scss";
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");

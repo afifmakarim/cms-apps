@@ -1,0 +1,32 @@
+.login-wrapper {
+  border-radius: 20px;
+  height: 92vh;
+}
+
+#login-wrapper .bg {
+  width: 100%;
+  border-radius: 0px 20px 20px 00px;
+  height: 92vh;
+}
+
+#login-wrapper .login-form {
+  margin: auto;
+  width: 50%;
+}
+
+#login-wrapper a {
+  text-decoration: none;
+}
+
+@media only screen and (max-width: 768px) {
+  /* For mobile phones: */
+
+  #login-wrapper .figura-wrapper {
+    display: none !important;
+  }
+
+  #login-wrapper .login-form {
+    margin: auto;
+    width: 100%;
+  }
+}

@@ -1,0 +1,18 @@
+span {
+  color: #435060;
+  font-weight: bold;
+}
+
+.dropdown-toggle::after {
+  display: none !important;
+}
+
+// @media only screen and (max-width: 1200px) {
+//   .profile-data {
+//     display: none !important;
+//   }
+
+//   .profile-btn {
+//     display: none !important;
+//   }
+// }

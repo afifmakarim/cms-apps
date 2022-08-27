@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
 import {
   Form,
   Card,
@@ -8,22 +7,22 @@ import {
   Col,
   ProgressBar,
   Button,
-  Alert,
   Spinner,
 } from "react-bootstrap";
-import {
-  SET_ERROR_MESSAGE,
-  SET_SUCCESS_MESSAGE,
-  CLEAR_MESSAGE,
-} from "../../redux/types";
+
 import { errorHandler } from "../../services/errorHandler";
 import Toaster from "../Toaster/Toaster";
 import FileUploader from "../FileUploader/FileUploader";
 import { editProduct, getProductById } from "../../services/crud-services";
 
 export default function EditForm() {
-  const [currentData, setCurrentData] = useState({});
-  const [newData, setNewData] = useState({});
+  const [newData, setNewData] = useState({
+    id: "",
+    name: "",
+    slugNmae: "",
+    imageUrl: "",
+    isActive: "",
+  });
   const [currentFile, setCurrentFile] = useState(undefined);
   const [isLoading, setLoading] = useState(false);
 
@@ -31,16 +30,10 @@ export default function EditForm() {
   const [errors, setErrors] = useState({});
 
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const { id } = useParams();
 
-  const { isError, isSuccess, message } = useSelector((state) => state.message);
-
-  //   console.log("current data ", currentData);
-  //   console.log("new data ", newData);
-
   const findFormErrors = () => {
-    const { name, slugName, imageUrl, isActive } = currentData;
+    const { name, slugName, imageUrl, isActive } = newData;
     const newErrors = {};
     // name errors
     if (!name || name === "") newErrors.name = "*name cannot be blank!";
@@ -73,43 +66,40 @@ export default function EditForm() {
       });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
+    console.log("submit ini ");
     e.preventDefault();
     const newErrors = findFormErrors();
 
     // checking validation
     if (Object.keys(newErrors).length > 0) {
+      console.log("submit ini zxcz");
+
       setErrors(newErrors);
     } else {
       handleEditData();
     }
   };
 
-  const handleEditData = () => {
+  const handleEditData = async () => {
     let currentFile = newData.imageUrl;
 
     setProgress(0);
     setCurrentFile(currentFile);
 
-    editProduct(newData, currentData.id, (event) => {
+    editProduct(newData, newData.id, (event) => {
       setProgress(Math.round((100 * event.loaded) / event.total));
     })
       .then(() => {
         navigate("/product");
-        dispatch({
-          type: SET_SUCCESS_MESSAGE,
-          payload: { isSuccess: true, message: "Success Edit Data" },
-        });
+        Toaster("success", "Success Edit Data");
       })
       .catch((error) => {
         setProgress(0);
 
         const handleError = errorHandler(error.response.status, error);
+        Toaster("error", handleError);
 
-        dispatch({
-          type: SET_ERROR_MESSAGE,
-          payload: { isError: true, message: handleError },
-        });
         setCurrentFile(undefined);
       });
   };
@@ -120,33 +110,17 @@ export default function EditForm() {
 
     try {
       const { data } = await getProductById(id);
-      console.log(data);
-      setCurrentData(data.data);
+      setNewData(data.data);
       setLoading(false);
     } catch (error) {
+      console.log(error);
       setLoading(false);
     }
   };
 
   useEffect(() => {
     getDetailById();
-
-    if (isSuccess) {
-      Toaster("success", message);
-      dispatch({
-        type: CLEAR_MESSAGE,
-        payload: { isSuccess: false },
-      });
-    }
-
-    if (isError) {
-      Toaster("error", message);
-      dispatch({
-        type: CLEAR_MESSAGE,
-        payload: { isError: false },
-      });
-    }
-  }, [isSuccess, isError]);
+  }, []);
 
   if (isLoading) {
     return (
@@ -158,7 +132,6 @@ export default function EditForm() {
 
   return (
     <>
-      {isError && <Alert variant="danger">{message}</Alert>}
       {currentFile && (
         <ProgressBar now={progress} label={`${progress}%`} className="my-3" />
       )}
@@ -177,7 +150,7 @@ export default function EditForm() {
                         src={
                           typeof newData.imageUrl === "object"
                             ? URL.createObjectURL(newData.imageUrl)
-                            : `https://jwt-backend-crud.herokuapp.com/${currentData.imageUrl}`
+                            : `https://jwt-backend-crud.herokuapp.com/${newData.imageUrl}`
                         }
                         alt="placeholder"
                         width="100%"
@@ -203,7 +176,7 @@ export default function EditForm() {
                     name="name"
                     onChange={Change}
                     isInvalid={!!errors.name}
-                    defaultValue={currentData.name}
+                    value={newData.name}
                   />
                   <Form.Control.Feedback type="invalid">
                     {errors.name}
@@ -218,7 +191,7 @@ export default function EditForm() {
                     name="slugName"
                     onChange={Change}
                     isInvalid={!!errors.slugName}
-                    defaultValue={currentData.slugName}
+                    value={newData.slugName}
                   />
                   <Form.Control.Feedback type="invalid">
                     {errors.slugName}
@@ -235,7 +208,7 @@ export default function EditForm() {
                       value="1"
                       type="radio"
                       onChange={Change}
-                      defaultChecked={currentData.isActive === 1 ? true : false}
+                      defaultChecked={newData.isActive === 1 ? true : false}
                     />
                     <Form.Check
                       inline
@@ -244,7 +217,7 @@ export default function EditForm() {
                       value="0"
                       type="radio"
                       onChange={Change}
-                      defaultChecked={currentData.isActive === 0 ? true : false}
+                      defaultChecked={newData.isActive === 0 ? true : false}
                     />
                   </div>
                 </Form.Group>
@@ -260,8 +233,14 @@ export default function EditForm() {
                 Cancel
               </Button>
 
-              <Button variant="primary" type="submit" className="text-white">
-                Edit
+              <Button
+                variant="primary"
+                type="submit"
+                className="text-white"
+                disabled={progress > 0}
+                onClick={progress === 0 ? handleSubmit : null}
+              >
+                {progress > 0 ? "Loading..." : "Edit"}
               </Button>
             </Form.Group>
           </Form>

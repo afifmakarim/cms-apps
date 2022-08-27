@@ -1,22 +1,9 @@
 import React, { useState } from "react";
-import {
-  Card,
-  Button,
-  Form,
-  Col,
-  Row,
-  Alert,
-  ProgressBar,
-} from "react-bootstrap";
+import { Card, Button, Form, Col, Row, ProgressBar } from "react-bootstrap";
 import { addNewProduct } from "../../services/crud-services";
 import FileUploader from "../FileUploader/FileUploader";
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  CLEAR_MESSAGE,
-  SET_SUCCESS_MESSAGE,
-  SET_ERROR_MESSAGE,
-} from "../../redux/types";
+
 import Toaster from "../Toaster/Toaster";
 import { errorHandler } from "../../services/errorHandler";
 
@@ -28,11 +15,9 @@ export default function AddNewForm() {
 
   const [progress, setProgress] = useState(0);
   const [errors, setErrors] = useState({});
+  const [isLoading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-
-  const { isError, isSuccess, message } = useSelector((state) => state.message);
 
   const findFormErrors = () => {
     const { name, slugName, imageUrl, isActive } = newData;
@@ -77,11 +62,13 @@ export default function AddNewForm() {
       setErrors(newErrors);
     } else {
       // No errors! Put any logic here for the form submission!
+      console.log("trigger submit ok");
       handleAddData();
     }
   };
 
-  const handleAddData = () => {
+  const handleAddData = async () => {
+    setLoading(true);
     let currentFile = newData.imageUrl;
 
     setProgress(0);
@@ -92,50 +79,29 @@ export default function AddNewForm() {
     })
       .then(() => {
         navigate("/product");
-        dispatch({
-          type: SET_SUCCESS_MESSAGE,
-          payload: { isSuccess: true, message: "Success Add Data" },
-        });
+        Toaster("success", "Success Add Data");
+        setLoading(false);
       })
       .catch((error) => {
+        setLoading(false);
         setProgress(0);
 
         const handleError = errorHandler(error.response.status, error);
 
-        dispatch({
-          type: SET_ERROR_MESSAGE,
-          payload: { isError: true, message: handleError },
-        });
+        Toaster("error", handleError);
         setCurrentFile(undefined);
       });
   };
 
-  if (isSuccess) {
-    Toaster("success", message);
-    dispatch({
-      type: CLEAR_MESSAGE,
-      payload: { isSuccess: false },
-    });
-  }
-
-  if (isError) {
-    Toaster("error", message);
-    dispatch({
-      type: CLEAR_MESSAGE,
-      payload: { isError: false },
-    });
-  }
-
   return (
     <>
-      {isError && <Alert variant="danger">{message}</Alert>}
       {currentFile && (
         <ProgressBar now={progress} label={`${progress}%`} className="my-3" />
       )}
       <Card>
         <Card.Header>Add New Product</Card.Header>
         <Card.Body>
-          <Form onSubmit={handleSubmit}>
+          <Form>
             <Row>
               <Col lg="6">
                 <Form.Group className="mb-3 d-flex flex-column gap-1">
@@ -165,7 +131,7 @@ export default function AddNewForm() {
               </Col>
 
               <Col>
-                <Form.Group className="mb-3" hasValidation>
+                <Form.Group className="mb-3">
                   <Form.Label>Name</Form.Label>
                   <Form.Control
                     type="text"
@@ -227,8 +193,14 @@ export default function AddNewForm() {
                 Cancel
               </Button>
 
-              <Button variant="primary" type="submit" className="text-white">
-                Submit
+              <Button
+                variant="primary"
+                type="submit"
+                className="text-white"
+                disabled={isLoading}
+                onClick={!isLoading ? handleSubmit : null}
+              >
+                {isLoading ? "Loading..." : "Submit"}
               </Button>
             </Form.Group>
           </Form>

@@ -7,38 +7,41 @@ import Toaster from "../Toaster/Toaster";
 
 export default function ConfirmationModal({ show, handleClose, data }) {
   const dispatch = useDispatch();
-  const [isLoading, setisLoading] = useState(false);
+  const [isLoading, setLoading] = useState(false);
 
   const { isSuccess, isError, message } = useSelector((state) => state.message);
 
-  const handleDelete = () => {
-    setisLoading(true);
-    dispatch(deleteData(data.id));
-  };
-
   useEffect(() => {
     if (isSuccess) {
-      setisLoading(false);
-
-      Toaster("success", message);
+      Toaster("success", "Success Delete Data");
+      setLoading(false);
       handleClose();
       dispatch({
         type: CLEAR_MESSAGE,
         payload: { isSuccess: false },
       });
+      return;
     }
 
     if (isError) {
-      setisLoading(false);
-
       Toaster("error", message);
+      setLoading(false);
       handleClose();
       dispatch({
         type: CLEAR_MESSAGE,
         payload: { isError: false },
       });
+
+      return;
     }
   }, [isSuccess, isError]);
+
+  const handleDelete = async () => {
+    console.log("TRIGGER HANDLE DELETE");
+
+    dispatch(deleteData(data.id));
+    setLoading(true);
+  };
 
   return (
     <>
